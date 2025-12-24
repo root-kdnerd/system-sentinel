@@ -37,7 +37,7 @@
 
 ### Installation
 ```bash
-git clone https://github.com/yourusername/system-sentinel.git
+git clone https://github.com/root-kdnerd/system-sentinel.git
 cd system-sentinel
 chmod +x system-sentinel.sh
 ```
@@ -287,10 +287,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Email: support@system-sentinel.dev
-- 💬 Discord: [Join our server](https://discord.gg/system-sentinel)
-- 🐛 Issues: [Report a bug](https://github.com/yourusername/system-sentinel/issues)
-- 💡 Ideas: [Suggest a feature](https://github.com/yourusername/system-sentinel/issues/new?template=feature_request.md)
+- 📧 Email: tekstack@gmail.com
+- 💬 Discord: [Join our server](https://discord.gg/root-kdnerd)
+- 🐛 Issues: [Report a bug](https://github.com/root-kdnerd/system-sentinel/issues)
+- 💡 Ideas: [Suggest a feature](https://github.com/root-kdnerd/system-sentinel/issues/new?template=feature_request)
 
 ---
 
@@ -300,7 +300,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If this project helped you, please consider giving it a star ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/system-sentinel&type=Date)](https://star-history.com/#yourusername/system-sentinel&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=root-kdnerd/system-sentinel&type=Date)](https://star-history.com/#root-kdnerd/system-sentinel&Date)
 
 </div>
 
