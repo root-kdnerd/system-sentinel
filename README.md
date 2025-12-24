@@ -287,7 +287,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Email: [tekstack@gmail.com](mailto:tekstack@gmail.com)
+- 📧 Email: [thetekstack@gmail.com](mailto:thetekstack@gmail.com)
 - 💬 Discord: [Join our server](https://discord.gg/root-kdnerd)
 - 🐛 Issues: [Report a bug](https://github.com/root-kdnerd/system-sentinel/issues)
 - 💡 Ideas: [Suggest a feature](https://github.com/root-kdnerd/system-sentinel/issues/new?template=feature_request)
