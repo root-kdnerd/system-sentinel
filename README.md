@@ -122,6 +122,19 @@ docker-compose up -d
 ## 📊 CI/CD Integration
 
 ### GitHub Actions
+
+> **Note:** CI/CD workflows are **disabled by default** to avoid unwanted notifications. To enable them, rename the `.disabled` files in `.github/workflows/`:
+
+```bash
+cd .github/workflows
+mv health-check.yml.disabled health-check.yml
+mv monitoring.yml.disabled monitoring.yml
+git add .github/workflows
+git commit -m "Enable CI/CD workflows"
+git push
+```
+
+Example workflow:
 ```yaml
 name: Health Check
 on: [push]
