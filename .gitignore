@@ -1,0 +1,104 @@
+# Configuration (may contain secrets)
+config/config.conf
+config/*.conf
+
+# Logs
+*.log
+logs/
+system-sentinel.log
+
+# Snapshots
+snapshots/*.txt.gz
+snapshots/*.txt
+
+# Reports
+reports/*.html
+reports/
+
+# Docker volumes
+.docker/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE files
+*.swp
+*.swo
+*~
+.project
+.settings/
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.old
+.nfs*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.pytest/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+yarn.lock
+
+# Test coverage
+coverage/
+*.cover
+
+# Build artifacts
+dist/
+build/
+*.tgz
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# Certificates
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Archives
+*.tar.gz
+*.zip
+*.rar
+
+# Compressed snapshots
+snapshots/*.gz

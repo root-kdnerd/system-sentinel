@@ -1,0 +1,79 @@
+name: Pre/Post Deployment Snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Snapshot action'
+        required: true
+        default: 'pre'
+        type: choice
+        options:
+          - pre
+          - post
+          - compare
+
+env:
+  SNAPSHOT_DIR: system-sentinel/snapshots
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup System Sentinel
+        run: |
+          chmod +x system-sentinel/system-sentinel.sh
+
+      - name: Take Pre-Deployment Snapshot
+        if: github.event.inputs.action == 'pre'
+        run: |
+          cd system-sentinel
+          SNAPSHOT_FILE=$(./system-sentinel.sh snapshot pre-deployment-$(date +%Y%m%d-%H%M%S))
+          echo "SNAPSHOT_FILE=$SNAPSHOT_FILE" >> $GITHUB_ENV
+          echo "📸 Pre-deployment snapshot taken: $SNAPSHOT_FILE"
+
+      - name: Take Post-Deployment Snapshot
+        if: github.event.inputs.action == 'post'
+        run: |
+          cd system-sentinel
+          SNAPSHOT_FILE=$(./system-sentinel.sh snapshot post-deployment-$(date +%Y%m%d-%H%M%S))
+          echo "SNAPSHOT_FILE=$SNAPSHOT_FILE" >> $GITHUB_ENV
+          echo "📸 Post-deployment snapshot taken: $SNAPSHOT_FILE"
+
+      - name: Compare Snapshots
+        if: github.event.inputs.action == 'compare'
+        run: |
+          cd system-sentinel
+          echo "Available snapshots:"
+          ls -lh snapshots/
+          echo ""
+          echo "Comparing latest pre and post deployment snapshots..."
+          PRE_SNAPSHOT=$(ls -t snapshots/pre-deployment* 2>/dev/null | head -1)
+          POST_SNAPSHOT=$(ls -t snapshots/post-deployment* 2>/dev/null | head -1)
+          
+          if [[ -n "$PRE_SNAPSHOT" && -n "$POST_SNAPSHOT" ]]; then
+            echo "Comparing: $PRE_SNAPSHOT vs $POST_SNAPSHOT"
+            ./system-sentinel.sh compare "$PRE_SNAPSHOT" "$POST_SNAPSHOT" > snapshot-diff.txt || true
+            cat snapshot-diff.txt
+          else
+            echo "⚠️ Could not find both pre and post deployment snapshots"
+          fi
+
+      - name: Upload Snapshots
+        if: github.event.inputs.action != 'compare'
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-snapshot-${{ github.event.inputs.action }}-${{ github.run_number }}
+          path: ${{ env.SNAPSHOT_DIR }}/*.gz
+          retention-days: 30
+
+      - name: Upload Diff
+        if: github.event.inputs.action == 'compare'
+        uses: actions/upload-artifact@v3
+        with:
+          name: snapshot-comparison-${{ github.run_number }}
+          path: system-sentinel/snapshot-diff.txt
+          retention-days: 30

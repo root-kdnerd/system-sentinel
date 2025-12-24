@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  system-sentinel:
+    build: .
+    container_name: system-sentinel
+    restart: unless-stopped
+    
+    volumes:
+      - ./config:/app/config
+      - ./snapshots:/app/snapshots
+      - ./reports:/app/reports
+      - ./logs:/app/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /sys:/sys:ro
+      - /proc:/proc:ro
+    
+    environment:
+      - DISK_THRESHOLD=80
+      - CPU_THRESHOLD=80
+      - MEM_THRESHOLD=80
+      - ALERT_EMAIL=
+      - SLACK_WEBHOOK=
+    
+    command: watch
+    
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge

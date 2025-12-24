@@ -1,0 +1,57 @@
+name: Scheduled Health Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  monitor-system:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup System Sentinel
+        run: |
+          chmod +x system-sentinel/system-sentinel.sh
+
+      - name: Run System Health Check
+        id: monitor
+        run: |
+          cd system-sentinel
+          ./system-sentinel.sh ci-check > monitor-report.json
+          
+      - name: Display Report
+        if: always()
+        run: |
+          cd system-sentinel
+          cat monitor-report.json
+          
+      - name: Create Alert if Unhealthy
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('system-sentinel/monitor-report.json', 'utf8'));
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 System Health Alert - ${new Date().toISOString()}`,
+              body: `## System Health Alert\n\n` +
+                `**Status:** ${report.status}\n` +
+                `**Hostname:** ${report.hostname}\n\n` +
+                `### Failed Checks:\n` +
+                `\`\`\`json\n${JSON.stringify(report.checks, null, 2)}\n\`\`\``,
+              labels: ['health-alert', 'automated']
+            });
+            
+      - name: Upload Monitoring Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: monitor-report-${{ github.run_number }}
+          path: system-sentinel/monitor-report.json
+          retention-days: 90

@@ -1,0 +1,109 @@
+# System Sentinel - GitLab CI/CD Template
+# Add this to your .gitlab-ci.yml file
+
+stages:
+  - pre-deploy
+  - deploy
+  - post-deploy
+  - monitor
+
+variables:
+  SENTINEL_DIR: "system-sentinel"
+
+.before_script_sentinel: &before_script_sentinel
+  before_script:
+    - chmod +x ${SENTINEL_DIR}/system-sentinel.sh
+
+# Pre-deployment health check
+pre-deploy-health:
+  stage: pre-deploy
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh ci-check > health-report.json
+    - cat health-report.json
+    - STATUS=$(cat health-report.json | jq -r '.status')
+    - test "$STATUS" = "healthy" || (echo "❌ Pre-deployment health check failed" && exit 1)
+    - echo "✅ Pre-deployment health check passed"
+  artifacts:
+    paths:
+      - ${SENTINEL_DIR}/health-report.json
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# Take pre-deployment snapshot
+pre-deploy-snapshot:
+  stage: pre-deploy
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh snapshot pre-deploy-$CI_PIPELINE_ID
+  artifacts:
+    paths:
+      - ${SENTINEL_DIR}/snapshots/
+    expire_in: 30 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# Post-deployment health check
+post-deploy-health:
+  stage: post-deploy
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh ci-check > post-deploy-health-report.json
+    - cat post-deploy-health-report.json
+    - STATUS=$(cat post-deploy-health-report.json | jq -r '.status')
+    - test "$STATUS" = "healthy" || (echo "❌ Post-deployment health check failed" && exit 1)
+    - echo "✅ Post-deployment health check passed"
+  artifacts:
+    paths:
+      - ${SENTINEL_DIR}/post-deploy-health-report.json
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: on_success
+
+# Take post-deployment snapshot
+post-deploy-snapshot:
+  stage: post-deploy
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh snapshot post-deploy-$CI_PIPELINE_ID
+  artifacts:
+    paths:
+      - ${SENTINEL_DIR}/snapshots/
+    expire_in: 30 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: on_success
+
+# Compare snapshots
+compare-snapshots:
+  stage: post-deploy
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh help
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: on_success
+
+# Scheduled monitoring
+scheduled-monitor:
+  stage: monitor
+  <<: *before_script_sentinel
+  script:
+    - cd ${SENTINEL_DIR}
+    - ./system-sentinel.sh ci-check > monitor-report.json
+    - cat monitor-report.json
+  artifacts:
+    paths:
+      - ${SENTINEL_DIR}/monitor-report.json
+    expire_in: 90 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'

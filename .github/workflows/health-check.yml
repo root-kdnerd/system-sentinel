@@ -1,0 +1,81 @@
+name: Pre-Deployment Health Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup System Sentinel
+        run: |
+          chmod +x system-sentinel/system-sentinel.sh
+          cd system-sentinel
+          ./system-sentinel.sh help
+
+      - name: Run System Health Check
+        id: health-check
+        continue-on-error: false
+        run: |
+          cd system-sentinel
+          ./system-sentinel.sh ci-check > health-report.json
+          
+      - name: Display Health Report
+        if: always()
+        run: |
+          cd system-sentinel
+          cat health-report.json
+          
+      - name: Parse Health Status
+        id: parse-status
+        run: |
+          cd system-sentinel
+          STATUS=$(cat health-report.json | jq -r '.status')
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          
+      - name: Fail if Unhealthy
+        if: steps.parse-status.outputs.status != 'healthy'
+        run: |
+          echo "❌ Health check failed!"
+          exit 1
+          
+      - name: Upload Health Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-report
+          path: system-sentinel/health-report.json
+          retention-days: 30
+          
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('system-sentinel/health-report.json', 'utf8'));
+            
+            const emoji = report.status === 'healthy' ? '✅' : '❌';
+            const comment = `## System Health Check ${emoji}\n\n` +
+              `**Status:** ${report.status}\n` +
+              `**Hostname:** ${report.hostname}\n` +
+              `**Timestamp:** ${report.timestamp}\n\n` +
+              `### Checks:\n` +
+              `- **Disk:** ${report.checks.disk.status}\n` +
+              `- **Services:** ${report.checks.services.status}\n` +
+              `- **Resources:** CPU: ${report.checks.resources.cpu}%, Memory: ${report.checks.resources.memory}%\n` +
+              `- **Logs:** ${report.checks.logs.status}`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
