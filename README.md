@@ -308,7 +308,7 @@ If this project helped you, please consider giving it a star ⭐
 
 <div align="center">
 
-**Made with ❤️ by the System Sentinel Community**
+**Made with ❤️ by the TheTekStack Devs Community**
 
 [⬆ Back to Top](#-system-sentinel)
 
